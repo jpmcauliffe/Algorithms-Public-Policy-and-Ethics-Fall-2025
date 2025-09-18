@@ -1,0 +1,102 @@
+---
+title: "pset1_JamesMcAuliffe"
+author: "James McAuliffe"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## Part 1: Basic Operations in R
+
+### Question 1
+Creating a Vector. Create a numeric vector that is the sequence of all
+integers between 1 and 1000 and assign this vector the name vec1.
+```{r}
+vec1 <- 1:1000
+```
+
+### Question 2
+Sampling. Create another vector of the same 1000 integers but whose
+order is randomized. You should do this by randomly drawing from the
+vector vec1, and label your new vector vec2. Hint: Use the sample()
+function. Remember that you can look up the documentation for any
+function to better understand how to use it. To do so for the sample()
+function, enter ?sample into the R console.
+```{r}
+vec2 <- sample(vec1)
+```
+
+### Question 3
+Creating a Data Frame. Bind these two vectors together in a data
+frame, and call the data frame dat. Make sure that the first column of
+dat corresponds to vec1 and the second column corresponds to vec2.
+```{r}
+dat <- data.frame(vec1, vec2)
+```
+
+### Question 4
+Comparing Variables. Compute the correlation between the two variables in dat.
+```{r}
+cor(vec1, vec2)
+```
+
+### Question 5
+Comment on whether you expected this correlation to be large or small
+(i.e. close to zero), and why.<br><br>
+Because vec2 is a randomly ordered sample of the integers 1 to 1000 contained 
+within vec1, I would expect the correlation between vec1 and vec2 to be close to zero. 
+
+## Part 2: Preparing to Work with Real Data
+
+Find the data file named data health synth small.csv on bCourses, and
+save it onto your computer in the same folder/directory as the R Markdown
+file you are creating for this assignment. This is a small portion of the
+synthetic dataset from Ziad Obermeyer, Brian Powers, Christine Vogeli, and
+Sendhil Mullainathan, “Dissecting Racial Bias in an Algorithm Used to Man-
+age the Health of Populations,” Science Vol. 366, No. 6464 (2019). The data
+contain measurements of individual (de-identified) patients in a hospital sys-
+tem.
+
+### Question 1 
+Reading in Data. Use the read.csv() function to read the dataset
+into R as a data frame called hdat.
+```{r}
+hdat <- read.csv("data_health_synth_small.csv")
+```
+
+### Question 2
+Data Size. Report how many rows and how many columns there are
+in the data set, and explain what the rows and columns represent (i.e.
+each row corresponds to what, and each column corresponds to what).
+<br><br> There are `r nrow(hdat)` rows and `r ncol(hdat)` columns in the data set.
+Each row represents a unique observation (a singular person and their medical care) in the data set, with each column representing the value of the specified variable. From left to right, those variables arecost, race, female, bps_mean.
+
+### Question 3
+Summarize Data. This small dataset contains the following variables:
+<br>&nbsp;&nbsp;&nbsp;&nbsp;cost: Total medical expenditures over the year, rounded to the nearest 100.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;race: Patient race. The paper focuses on racial bias across Black and White patients, and so the data contain only two racial categories.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;female: Indicator for identification with female gender.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;bps mean: Mean systolic blood pressure over the year.
+<br>Use the summary() function to compute summary statistics about the
+data, and in words, report some of the results.
+```{r}
+summary(hdat)
+```
+<br>As you can see in the above output, there is a massive range in the cost of medical care over the year, with the median at 2800 and a much higher mean of 7660, suggesting a heavily right-skewed distribution.
+<br><br>From the summary of the female column, we can see that the median value is 1, implying there are more females than non-females in this data set. Furthermore, by examining the mean of 0.63, we can find the total proportion of individuals in the data set who are identified as females.
+<br><br>The final column captures individual's mean systolic blood pressure over the year. Here, the mean and median are almost identical, suggesting a rather symmetrical distribution. This belief is strengthened by the first and third quartiles, which are both 9 units away from the median (and mean).
+
+## Part 3: Short Answer
+
+The figure below is from Obermeyer et al. (2019). First, explain what the
+two curves represent. Second, explain the implications of the fact that the
+two curves are divergent from one another.
+<br>
+<img src="graph_img.png" width="600px">
+<br>
+<br>
+On the x-axis we have the percentile of algorithmic risk score and on the y-axis
+we have the number of active chronic conditions. More importantly, the points 
+(and overlaid lines) are plotted in two different colors, yellow for white individuals
+and purple for black individuals. These data allow us to directly analyze whether Black and White
+patients with similar risk scores actually have similar levels of health and/or healthcare costs.
+Each curve represents the predicted number of active chronic conditions for the corresponding algorithmic risk percentile, given the individual's race. The fact that these two curves diverge from one another suggests that a black individual and a white individual who receive the same algorithmic risk score do not actually share the same risk of chronic health conditions. Instead, black individuals are more likely to have a greater number of chronic health conditions, with the difference between the two races growing larger as the algorithmic risk percentile increases.
