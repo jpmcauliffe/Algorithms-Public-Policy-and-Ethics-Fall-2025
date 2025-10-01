@@ -1,0 +1,317 @@
+---
+title: "pset2_JamesMcAuliffe"
+author: "James McAuliffe"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+set.seed(42)
+library(dplyr)
+```
+
+## Part 1: More Operations in R
+
+### Question 1
+In the previous data science assignment, we asked you to perform a number of basic operations in Part 1. To begin here, redo the following:
+<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;(a) Creating a Vector. Create a numeric vector that is the sequence of all integers between 1 and 1000 and assign this vector the name vec1.
+```{r}
+vec1 <- seq(from = 1, to = 1000)
+```
+
+<br>&nbsp;&nbsp;&nbsp;&nbsp;(b) Sampling. Create another vector of the same 1000 integers but whose order is randomized. You should do this by randomly drawing from the vector vec1, and label your new vector vec2. Use
+the sample() function to do this.
+```{r}
+vec2 <- sample(vec1, replace = FALSE)
+```
+
+<br>&nbsp;&nbsp;&nbsp;&nbsp;(c) Creating a Data Frame. Bind these two vectors together in a data frame, and call the data frame dat. Make sure that the first column of dat corresponds to vec1 and the second column corresponds to vec2.
+```{r}
+dat <- data.frame(vec1, vec2)
+```
+
+### Question 2
+Lookup and Indexing. Determine which elements of column 2 of dat contain the numbers 2, 47, 290, and 812. Store the indices of these elements (i.e. the row numbers) in a manner of your choosing.
+```{r}
+lookup_values <- c(2, 47, 290, 812)
+row_indices <- which(dat$vec2 %in% lookup_values)
+```
+
+### Question 3
+Replacement. Now replace the instances of the numbers 2, 47, and 290, and 812 in column 2 of dat with missing values (NA).
+```{r}
+dat$vec2[row_indices] <- NA
+```
+
+### Question 4
+Variable Renaming. Rename the columns of dat. The new names, in order, should be caseid and wage.
+```{r}
+colnames(dat) <- c("caseid", "wage")
+```
+
+### Question 5
+Compute Summary Statistics. Calculate the mean, median, and standard deviation of wage and report those values. Since there are NA values, you will need to use the “na.rm = TRUE” argument when calculating these values.
+```{r}
+dat |>
+  summarize(mean_wage = mean(wage, na.rm = TRUE),
+            median_wage = median(wage, na.rm = TRUE),
+            sd_wage = sd(wage, na.rm = TRUE))
+```
+
+### Question 6
+Subsetting. Create a new data frame, dat2, that is dat without the missing values. In other words, delete all observations (rows) that have missing wage values.
+```{r}
+dat2 <- subset(dat, !is.na(wage))
+```
+
+## Part 2: Getting a Handle on a New Dataset
+The dataset and data dictionary you need for this assignment, which can be found on bCourses, are data health synth.csv and data dictionary.pdf. The dataset is comprised of synthetic data posted by the authors of Ziad
+Obermeyer, Brian Powers, Christine Vogeli, and Sendhil Mullainathan, “Dissecting Racial Bias in an Algorithm Used to Manage the Health of Populations,” Science Vol. 366, No. 6464 (2019)—hereafter referred to as Obermeyer et al. (2019). It is designed to reflect the true data used by the authors in their study while protecting the privacy of the subjects. 
+<br><br>
+Before working with a dataset, it is important to understand its structure and what the variables are, so you should begin this assignment by looking through the data dictionary. It is quite long given the number of variables in the dataset, so you do not need to commit it to memory, but you should have a general understanding of the types of variables included, as well as be able to identify the most important variables. Also be sure to distinguish variables measured at year t from those measured at year t − 1. 
+<br><br>
+In addition, while not required, you may also find it useful to read through the first 6 pages of the supplementary materials to Obermeyer et al. (2019), which provides additional details on the dataset. This document was posted on bCourses (suppl materials Obermeyer etal 2019.pdf). 
+<br><br>
+Once you have a sense of the data dictionary, write code that loads the dataset data health synth.csv using the read.csv() function, store it as a data frame called dat, and proceed with the assignment.
+```{r}
+dat <- read.csv("data_health_synth.csv")
+```
+
+## Part 2A: Summary Statistics
+
+### Question 1
+The key variables we will focus on in this assignment are the following five variables:
+<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;(a) Total medical expenditures in year t (not in year t − 1)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;(b) Total number of active chronic illnesses in year t (not in year t−1)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;(c) Risk score produced by the commercial algorithm
+<br>&nbsp;&nbsp;&nbsp;&nbsp;(d) Program enrollment (i.e. whether or not a patient was enrolled in the high-risk care management program)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;(e) Race
+<br><br>
+What are the names of these five variables in the dataset?
+
+_cost_t, gagne_sum_t, risk_score_t, program_enrolled_t, race_
+
+### Question 2
+In class, we discussed the distinction between conceptional, operational, and actualized versions of a variable. Discuss this distinction in the context of the second variable listed above.
+
+_The second variable is the total number of active chronic illnesses in year t, which can be seen as having unique conceptional, operational, and actualized versions._ 
+<br><br>
+_Conceptually, researchers are hoping to measure how ill/in-need of medical treatmeant certain individuals are._
+<br><br>
+_In the operational sense, researchers can quantify this variable by assing some numeric indicator._
+<br><br>
+_In the actualized study, researches counted the number of "active chronic illnesses" each individual has, and used that number as the final variable, representing how ill/in-need of medical treatmeant each person is._
+
+### Question 3
+Compute and report the mean values for the first four of the variables listed above.
+
+_The average total medical expenditures in year t was `r mean(dat$cost_t)`, the average total number of active chronic illnesses in year t was `r mean(dat$gagne_sum_t)`, the average risk score produced by the commercial algorithm was `r mean(dat$risk_score_t)`, and the average program enrollment (which can more insightfully be read as the proportion of patients enrolled in the high-risk care management program) was `r mean(dat$program_enrolled)`_ 
+
+### Question 4
+Compute and report the proportion of patients who belong to each racial group.
+```{r}
+library(dplyr)
+
+dat |>
+  group_by(race) |>
+  summarize(count = n()) |>
+  mutate(proportion = count / sum(count))
+```
+
+### Question 5
+Using bracket notation (i.e. not dplyr), compute and report the mean medical expenditures and mean number of chronic illnesses—variables (a) and (b)—separately for each of the two racial groups.
+
+_The average total medical expenditures in year t for black patients was `r mean(dat[dat$race == "black", "cost_t"])` while for white patients it was `r mean(dat[dat$race == "white", "cost_t"])`._ 
+<br>
+_The average total number of active chronic illnesses in year t for black patients was `r mean(dat[dat$race == "black", "gagne_sum_t"])` while for white patients it was `r mean(dat[dat$race == "white", "gagne_sum_t"])`._ 
+
+### Question 6
+Repeat the previous except now, instead of using bracket notation, use functionality from the dplyr package. In particular, you will want to use the pipe operator %>% along with the appropriate functions.
+```{r}
+dat %>%
+  select("race", "cost_t", "gagne_sum_t") %>%
+  group_by(race) %>%
+  summarize(avg_cost  = mean(cost_t),
+            avg_illness = mean(gagne_sum_t))
+```
+
+### Question 7
+Comment on the results. How do medical expenditures and chronic illnesses vary on average across the racial groups?
+
+_On average, medical expenditures for patients in the study are higher for black individuals than white individuals. Furthermore, black patients in this study average more than 2 chronic illnesses each, while white patients in the study are much closer to 1, with around 1.26 on average._
+
+## Part 2B: Assessing Program Enrollment
+
+### Question 1
+Generate and display histograms of the risk score by program enrollment status. That is, you should create two risk score histograms: one for patients enrolled in the program, and one for patients not enrolled in the program. You can use whatever plotting functions you prefer, but you should make sure the x-axis ranges from 0 to 100 for both histograms for easier comparison.
+```{r}
+library(ggplot2)
+
+q1_enrolled <- dat[dat$program_enrolled_t == 1, ]
+q2_enrolled <- dat[dat$program_enrolled_t == 0, ]
+
+ggplot(data = q1_enrolled, mapping = aes(x = risk_score_t)) +
+  geom_histogram(bins=50) + 
+  xlim(0, 100) +
+  labs(title = "Distribution of risk scores for patients\n enrolled in the high-risk care management program")
+
+ggplot(data = q2_enrolled, mapping = aes(x = risk_score_t)) +
+  geom_histogram(bins=50) + 
+  xlim(0, 100) +
+  labs(title = "Distribution of risk scores for patients\n NOT enrolled in the high-risk care management program")
+```
+
+### Question 2
+Compare the two histograms and comment. Does there appear to be a strict threshold in the risk score that perfectly determines who gets enrolled in the program? Based on what we know about the relationship between the risk score and program enrollment from the Obermeyer et al. (2019) reading, does this surprise you?
+
+_As expected, those that belong to the "enrolled in program" group tend to have higher risk scores than those belonging to the "not enrolled in program" group, but there does not appear to be a strict threshold in the risk score that perfectly determines whether or not an individual is enrolled in the program._
+<br><br>
+_Based on what I read in Obermeyer et al. (2019), this does not surprise me at all. In the reading it was made clear the two racial groups have much different (number of active chronic illness) thresholds to be considered part of the group to be automatically enrolled in the program, which happens at the combined 97th risk percentile._
+
+### Question 3
+Compute, store, and report the 25th and 75th percentiles of the risk score.
+
+```{r}
+first_quartile <- quantile(dat$risk_score_t, probs = 0.25)
+third_quartile <- quantile(dat$risk_score_t, probs = 0.75)
+```
+
+_The 25th percentile of risk score is `r quantile(dat$risk_score_t, probs = 0.25)` and the 75th percentile of risk score is `r quantile(dat$risk_score_t, probs = 0.75)`_
+
+### Question 4
+Compute and report the mean enrollment (i.e. proportion of patients enrolled in the program) separately across three groups: (a) patients whose risk score is below the 25th percentile, (b) patients whose risk score is above/equal to the 25th percentile and below the 75th percentile, and (c) patients whose risk scores is above/equal to the 75th percentile.
+```{r}
+q4_bottom_25 <- dat[dat$risk_score_t < first_quartile, ]
+q4_middle_50 <- dat[dat$risk_score_t > first_quartile & dat$risk_score < third_quartile, ]
+q4_top_25 <- dat[dat$risk_score_t > third_quartile, ]
+```
+
+````{r}
+q4_bottom_25 |>
+    summarize(prop_enrollment = mean(program_enrolled_t))
+
+q4_middle_50 |>
+    summarize(prop_enrollment = mean(program_enrolled_t))
+
+q4_top_25 |>
+    summarize(prop_enrollment = mean(program_enrolled_t))
+````
+
+### Question 5
+Comment on the results. Does there appear to be a relationship between risk score and program enrollment based on this analysis?
+
+_As the percentiles of risk score (or at least groups of percentiles of risk scores) increase, the proportion of patients enrolled in the program increases too. This would suggest a relationship between risk score and program enrollment, with higher risk scores generally meaning a higher proportion of patients enrolled in the program._
+
+### Question 6
+Create a subsetted version of the data that includes only patients who satisfy both of the following criteria: (i) are not enrolled in the program, and (ii) have a risk score above/equal to the 75th percentile. Be sure to store this as a separate data frame. Report how many patients are in this “not-enrolled-high-risk” subset.
+```{r}
+sub_dat <- subset(dat, program_enrolled_t == 0 & risk_score_t >= third_quartile)
+nrow(sub_dat)
+```
+
+### Question 7
+Focusing only on the “not-enrolled-high-risk” subset of data you just created, compute and report the mean number of chronic illnesses separately for each racial group.
+
+```{r}
+sub_dat |>
+    group_by(race) |>
+    summarize(hrne_avg_ill = mean(gagne_sum_t))
+```
+
+### Question 8 
+Comment on the results. Does there seem to be a potential problem with the program enrollment decision-making based on this analysis? If so, describe what the evidence is.
+
+_Given the results produced in the table above, there appears to be a potential problem with the program enrollment decision-making. Based on the specific "not-enrolled-high-risk" subset of the data, black patients who are part of this subgroup have, on average, more than 4 chronic illnesses (4.1095), while white patients who are part of this subgroup have less than 3 chronic illnesses on average (2.8240). In theory, the program enrollment decision-making should lead to a scenario where those two numbers are nearly identical, showing no bias toward race._
+
+## Part 3: Recreating Figures
+Note: Question 5 in this part is required, but Questions 1-4 are Bonus. 
+<br><br>
+In this part, we will re-create simplified versions of key figures in Obermeyer et al. (2019). Begin by copying the following lines of code into code chunks in your R Markdown file:
+```{r}
+#Chunk 1:
+risk_deciles <- quantile(dat$risk_score_t,
+probs = seq(from = 0, to = 1, by = 0.1))
+```
+
+```{r}
+#Chunk 2:
+dat$risk_decile_bin <- as.numeric(
+cut(dat$risk_score_t, breaks = risk_deciles, include.lowest = TRUE)
+)
+```
+
+```{r}
+#Chunk 3:
+some_results <-
+as.data.frame(
+dat %>%
+group_by(risk_decile_bin,race) %>%
+summarise(mean_illness = mean(gagne_sum_t))
+)
+```
+
+```{r}
+#Chunk 4:
+library(ggplot2)
+ggplot(some_results,
+aes(x = risk_decile_bin, y = mean_illness, color = race)) +
+geom_point() + geom_line()
+```
+
+Part of becoming a good programmer involves being able to figure out what someone else’s code is doing by looking through it line by line, and being able to re-use or adapt code for similar tasks. In the code above, the fourth chunk uses the ggplot2 package (be sure to install the package if you have not already!) to plot the results of the first 3 chunks, and the resulting figure is a simplified re-creation of Figure 1(A) from Obermeyer et al. (2019). In the following questions, you will be asked to explain what each of the first 3
+chunks of code are doing.
+<br><br>
+Useful strategies for understanding someone else’s code include running individual lines and excerpts from individual lines in the console to see what they do, inspecting the outputs or objects that different bits of code create, and looking at the documentation of any functions you are not completely familiar with (e.g. you can look at the documentation of the cut() function by entering ?cut into the console).
+
+### Question 1
+(Bonus) Explain what code chunk 1 is doing.
+
+_The first code chunk calculates the deciles (percentiles 10, 20, 30, ..., 80, 90, 100) of risk scores in the data set, and assigns those deciles to `risk_deciles`_
+
+### Question 2
+(Bonus) Explain what code chunk 2 is doing.
+
+_The second code chunk, in effect, bins the risk scores by converting the vector of risk scores into numbers 1-10 depending on which decile they belong to, with 1 denoting the first decile and 10 denoting the highest decile. At the same time, the code chunk assigns the updated (numeric) vector to `dat$risk_decile_bin`, a column in the data frame._
+
+### Question 3
+(Bonus) Explain what code chunk 3 is doing.
+
+_The third code chunk takes in the data frame, groups by both risk decile and race (so that the there are 20 rows of output – one row for white patients in each decile and one row for black patients in each decile), and then calculates the mean number of chronic illnesses for the patients belonging to the subgroups. Following that computation, the data is converted to a data frame and assigned to `some_results`_
+
+### Question 4 
+(Bonus) Now re-create a simplified version of Figure 3(A) Obermeyer et al. (2019). You will be able to do so by recycling and making very minor modifications to the code you already have above.
+
+```{r}
+risk_deciles <- quantile(dat$risk_score_t,
+probs = seq(from = 0, to = 1, by = 0.1))
+```
+
+```{r}
+dat$risk_decile_bin <- as.numeric(
+cut(dat$risk_score_t, breaks = risk_deciles, include.lowest = TRUE)
+)
+```
+
+```{r}
+some_results <-
+as.data.frame(
+dat %>%
+group_by(risk_decile_bin,race) %>%
+summarise(mean_cost = mean(cost_t))
+)
+```
+
+```{r}
+library(ggplot2)
+ggplot(some_results,
+aes(x = risk_decile_bin, y = mean_cost, color = race)) +
+geom_point() + geom_line() +
+ylim(1000, 60000)
+```
+
+### Question 5
+Recall that in class, we compared and discussed Figures 1(A) and 3(A), and this comparison is a central finding in Obermeyer et al. (2019). In your own words, describe the key difference between the patterns exhibited in Figure 1(A) vs. 3(A), what accounts for that difference, and its implications for racial bias.
+
+_Figure 3(A) displays costs versus algorithm-predicted risk, grouped by race, that was the central subject of the Obermeyer study. Looking solely at Figure 3(A) you might think the algorithm is extremely effective with very little bias, as the two lines match each other almost perfectly. When you look at Figure 1(A), you see the more important relationship, which is the bumber of chronic illnesses versus algorithm-predicted risk, once again grouped by race. In that figure, it is clear to see the two lines diverge from each other, suggesting there may be bias involved. When you consider what the difference means, you realize many white patients with much lower risk than certain black patients are being both auto-identified to join the program and to be more carefully examined by their PCP. This is largely due to the differences in healthcare spending on white and black individuals. While the algorithm is not inherently "racist," it absorbs many of the systemic inequities present in our society, which inadvertently creates bias in the algorithm and can lead to severly racist outputs._
